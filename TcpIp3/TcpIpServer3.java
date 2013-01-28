@@ -36,7 +36,9 @@ public class TcpIpServer3 {
 		while(it.hasNext()) {
 			try {
 				DataOutputStream out = (DataOutputStream)clients.get(it.next());
-				out.writeUTF(msg);
+				
+				String Headd = "HTTP/1.1 200 OK\nServer: nginx\nDate: Thu, 24 Jan 2013 05:10:32 GMT\nContent-Type: text/html; charset=UTF-8\nConnection: close\nCache-Control: no-cache, no-store, must-revalidate\nPragma: no-cache\nVary: Accept-Encoding,User-Agent\n";
+				out.writeUTF(Headd + "\n" + msg);
 			} catch(IOException e) {}
 		}
 	}
@@ -63,7 +65,12 @@ public class TcpIpServer3 {
 			String name = "";
 			try {
 				name = in.readUTF();
+				if(name.equals(""))
+					name = "test with curl";
 				sendToAll("#" + name + "님이 들어오셨습니다.");
+
+				String Headd = "HTTP/1.1 200 OK\nServer: nginx\nDate: Thu, 24 Jan 2013 05:10:32 GMT\nContent-Type: text/html; charset=UTF-8\nConnection: close\nCache-Control: no-cache, no-store, must-revalidate\nPragma: no-cache\nVary: Accept-Encoding,User-Agent\n";
+				out.writeUTF(Headd + "\n" + "welcome");
 
 				clients.put(name, out);
 				System.out.println("현재 서버접속자 수는 " + clients.size() + "입니다.");
