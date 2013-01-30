@@ -11,8 +11,11 @@ public class HttpResponse {
 	private String	statusText = null;
 	//Header-------------------
 	private String 	contentType = null;
+	private int		contentLength = -1;
 	
 	private String 	holeHead = null;
+		//--cache--//
+	private boolean isCache = false;
 	//Body---------------------
 	private boolean	isBody = false;
 	private byte[]	resBody = null;
@@ -38,8 +41,14 @@ public class HttpResponse {
 				return false;
 
 			holeHead = versionOfHttp + " " + statusCode + statusText + "\n";
+			if(isCache == false) {
+				holeHead = holeHead + "Pragma: no-cache\n";
+				holeHead = holeHead + "Cache-Control: no-cache\n";
+			}
 			if(isBody) {
 				holeHead = holeHead + contentType + "\n";	
+				if(contentLength > -1)
+					holeHead = holeHead + contentLength + "\n";
 			}
 			System.out.println(holeHead);
 
@@ -62,6 +71,11 @@ public class HttpResponse {
 	public void setCharset(String type) {
 		contentType = contentType + "; charset=" + type;
 	}
+
+	public void setCache() {
+		
+	}
+
 	public void sendBytes(byte[] body) {
 		try {
 			outputco.writeBytes(new String(body));

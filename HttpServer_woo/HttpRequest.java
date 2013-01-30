@@ -22,6 +22,10 @@ public class HttpRequest {
 
 	private int contentLength = -1;
 	private String contentType = null;
+
+		//--cache--//
+	private String ifModifiedSince = null;
+
 	//BODY--------------
 	private Boolean isBody = false;
 
@@ -142,6 +146,12 @@ public class HttpRequest {
 		if(head.indexOf("Content-Type: ") != -1) {
 			ch = head.split("Content-Type: ");
 			contentType = (ch[1].split("\\r?\\n"))[0];
+		}
+
+		//-------------cache-------------//
+		if(head.indexOf("If-Modified-Since: ") != -1) {
+			ch = head.split("If-Modified-Since: ");
+			ifModifiedSince = (ch[1].split("\\r?\\n"))[0];
 		}
 	}
 
