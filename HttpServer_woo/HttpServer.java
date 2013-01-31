@@ -1,11 +1,15 @@
 import java.net.*;
 import java.io.*;
+import java.util.*;
+import java.text.*;
 
 public class HttpServer {
 
 	private ServerSocket serverSocket;
 	private HttpRequest request;
 	private HttpResponse response;
+
+	private Date	lastModifiedDate;
 
 	public static void main(String args[]) {
 		HttpServer server = new HttpServer();
@@ -21,6 +25,8 @@ public class HttpServer {
 	}
 
 	public void start() {
+		lastModifiedDate = new Date();
+		System.out.println("openServer " + lastModifiedDate);
 		while(true) {
 			try {
 				Socket socket = null;
@@ -40,7 +46,19 @@ public class HttpServer {
 				
 				//--------Response---------//
 				response = new HttpResponse(socket);
+				
+
+					//---setCaching---//
+				Calendar calendar = new java.util.GregorianCalendar();
+        		calendar.setTime(lastModifiedDate);
+        		calendar.add(Calendar.MINUTE,1);
+
+				response.setCache(calendar.getTime());
+				SimpleDateFormat formatter = new SimpleDateFormat ("E, dd MMM yy HH:mm:ss", Locale.ENGLISH);
+				formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+
 				File file = new File("." + request.getReqUri());
+				
 				if(request.getReqUri().equals("/favicon.ico")) {
 					response.setStatus(StatusCode.HTTP_OK);
 					response.setContentType("image/gif");
@@ -58,26 +76,48 @@ public class HttpServer {
 
 	        		imfis.close();
 				}
-				else if(file.exists() == true) {
-					response.setStatus(StatusCode.HTTP_OK);
-					response.setContentType("text/html");
-					response.setCharset("UTF-8");
-					response.sendResponseHead();
-					response.sendString("[Notice] Test Message1 from Server.<br>\n");
-					
-					FileInputStream imfis = new FileInputStream(file);
-	        		
-	        		int aa = -1;
-	        		aa = imfis.read();
-	        		while(aa != -1){
-	        			char cc = (char)aa;
-	        			response.sendString(String.valueOf(cc));
-	        			aa = imfis.read();
-	        		} 
+				else if(request.getReqUri().equals("/") != true
+					&& file.exists() == true) {
 
-	        		imfis.close();
+					Date checkDate = new Date();
+					
+					if(request.getModifiedSince() != null) {
+						Date imsi = formatter.parse(request.getModifiedSince());
+						System.out.println("hahahahaha" + imsi + "hh");
+						checkDate = imsi;
+
+						String imst = formatter.format(lastModifiedDate);
+						lastModifiedDate = formatter.parse(imst);
+						System.out.println("hahahahaha" + lastModifiedDate + "hh");
+					}
+					if(request.getModifiedSince() == null ||
+						(request.getModifiedSince() != null && 
+							checkDate.compareTo(lastModifiedDate) < 0)) {
+						response.setStatus(StatusCode.HTTP_OK, lastModifiedDate);
+						response.setContentType("text/html");
+						response.setCharset("UTF-8");
+						response.sendResponseHead();
+						response.sendString("[Notice] Test Message1 from Server.<br>\n");
+						
+						FileInputStream imfis = new FileInputStream(file);
+		        		
+		        		int aa = -1;
+		        		aa = imfis.read();
+		        		while(aa != -1){
+		        			char cc = (char)aa;
+		        			response.sendString(String.valueOf(cc));
+		        			aa = imfis.read();
+		        		} 
+
+		        		imfis.close();
+	        		}
+	        		else {
+	        			response.setStatus(StatusCode.HTTP_NOT_MODIFIED, lastModifiedDate);
+						response.sendResponseHead();	
+	        		}
 				}
 				else {
+					response.setCache(false);
 					response.setStatus(StatusCode.HTTP_BAD_REQUEST);
 					response.setContentType("text/html");
 					response.setCharset("UTF-8");
@@ -96,7 +136,7 @@ public class HttpServer {
 
 				socket.close();
 
-			} catch(IOException e) {
+			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}

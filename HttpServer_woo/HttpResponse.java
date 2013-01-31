@@ -1,6 +1,7 @@
 import java.net.*;
 import java.io.*;
-import java.util.regex.*;
+import java.util.*;
+import java.text.*;
 
 
 public class HttpResponse {
@@ -16,6 +17,10 @@ public class HttpResponse {
 	private String 	holeHead = null;
 		//--cache--//
 	private boolean isCache = false;
+	private int		cacheExpires = 0;
+	private Date 	cacheExDate = null;
+	private boolean isModified = true;
+	private Date 	lastModified = null;
 	//Body---------------------
 	private boolean	isBody = false;
 	private byte[]	resBody = null;
@@ -41,9 +46,29 @@ public class HttpResponse {
 				return false;
 
 			holeHead = versionOfHttp + " " + statusCode + statusText + "\n";
+			SimpleDateFormat formatter = new SimpleDateFormat ("E, dd MMM yy HH:mm:ss", Locale.ENGLISH);
+			formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
+			Date currentTime = new Date ();
+			String dTime = formatter.format(currentTime);
+			System.out.println (dTime);
+			holeHead = holeHead + "Date: " + dTime + " GMT\n";
 			if(isCache == false) {
 				holeHead = holeHead + "Pragma: no-cache\n";
 				holeHead = holeHead + "Cache-Control: no-cache\n";
+			}
+			else { 
+				if(cacheExpires > 0)
+					holeHead = holeHead + "Cache-Control: max-age=" + cacheExpires + "\n";
+				else if(cacheExDate != null) {
+					String exTime = formatter.format(cacheExDate);
+					holeHead = holeHead + "Expires: " + exTime + "\n";
+				}
+				String lMtime = formatter.format(lastModified);
+				holeHead = holeHead + "Last-Modified: " + lMtime + "\n";
+			}
+			if(isModified == false) {
+				String lMtime = formatter.format(lastModified);
+				holeHead = holeHead + "Last-Modified: " + lMtime + "\n";
 			}
 			if(isBody) {
 				holeHead = holeHead + contentType + "\n";	
@@ -63,6 +88,15 @@ public class HttpResponse {
 		statusCode = code;
 		statusText = StatusCode.get(code);
 	}
+	public void setStatus(int code, Date lastM) {
+		statusCode = code;
+		statusText = StatusCode.get(code);
+		lastModified = lastM;
+
+		if(code == StatusCode.HTTP_NOT_MODIFIED){
+			isModified = false;
+		}
+	}
 
 	public void setContentType(String type) {
 		isBody = true;
@@ -72,8 +106,16 @@ public class HttpResponse {
 		contentType = contentType + "; charset=" + type;
 	}
 
-	public void setCache() {
-		
+	public void setCache(int sec) {
+		isCache = true;
+		cacheExpires = sec;
+	}
+	public void setCache(Date date) {
+		isCache = true;
+		cacheExDate = date;
+	}
+	public void setCache(boolean check) {
+		isCache = check;
 	}
 
 	public void sendBytes(byte[] body) {

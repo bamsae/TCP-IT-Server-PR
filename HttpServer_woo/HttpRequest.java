@@ -206,4 +206,8 @@ public class HttpRequest {
 		return reqBody;
 	}
 
+	public String getModifiedSince() {
+		return ifModifiedSince;
+	}
+
 }
