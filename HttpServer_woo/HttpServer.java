@@ -58,6 +58,7 @@ public class HttpServer {
 				formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
 
 				File file = new File("." + request.getReqUri());
+				lastModifiedDate.setTime(file.lastModified());
 				
 				if(request.getReqUri().equals("/favicon.ico")) {
 					response.setStatus(StatusCode.HTTP_OK);
@@ -94,10 +95,14 @@ public class HttpServer {
 						(request.getModifiedSince() != null && 
 							checkDate.compareTo(lastModifiedDate) < 0)) {
 						response.setStatus(StatusCode.HTTP_OK, lastModifiedDate);
-						response.setContentType("text/html");
-						response.setCharset("UTF-8");
+						if(request.getReqUri().indexOf(".jpg") != -1)
+							response.setContentType("image/jpeg");
+						else {
+							response.setContentType("text/html");
+							response.setCharset("UTF-8");
+						}
 						response.sendResponseHead();
-						response.sendString("[Notice] Test Message1 from Server.<br>\n");
+						//response.sendString("[Notice] Test Message1 from Server.<br>\n");
 						
 						FileInputStream imfis = new FileInputStream(file);
 		        		
