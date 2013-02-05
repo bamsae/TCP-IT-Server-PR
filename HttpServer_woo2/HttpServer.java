@@ -47,22 +47,24 @@ public class HttpServer {
 
 		public void run() {
 			try {
-				System.out.println("REQURI : " + request.getReqUri());
-				if(ActionSet.getActionSet().isAction(request.getReqUri())) {
-					ActionSet.getActionSet().doAction(request.getReqUri(),request,response);
+				System.out.println("REQURI : " + request.getReqPath());
+				if(ActionSet.getActionSet().isAction(request.getReqPath())) {
+					System.out.println("setting cache");
+					ActionSet.getActionSet().doAction(request.getReqPath(),request,response);
 				}
 				else {
-					File file = new File("." + request.getReqUri());
+					File file = new File("." + request.getReqPath());
+					System.out.println("file.jpgcheck");
 					if(file.exists() == true) {
-						if(request.getReqUri().indexOf(".jpg") != -1)
+						if(request.getReqPath().indexOf(".jpg") != -1)
 							response.setContentType("image/jpeg");
-						else if(request.getReqUri().indexOf(".ico") != -1)
+						else if(request.getReqPath().indexOf(".ico") != -1)
 							response.setContentType("image/gif");
 						else {
 							response.setContentType("text/html");
 							response.setCharset("UTF-8");
 						}
-						response.setCache(request, CacheOption.CACHE_MODIFIED);
+						response.setCache(request, CacheOption.CACHE_ETAG);
 						System.out.println("Modified Since : " + request.getModifiedSince());
 						response.sendFile(file);
 					}
@@ -70,9 +72,7 @@ public class HttpServer {
 						response.setStatus(StatusCode.HTTP_NOT_FOUND);
 						response.sendResponseHead();
 					}
-				}
-				response.close();
-				socket.close();
+				}	
 			} catch(Exception e) {
 				e.printStackTrace();
 			} finally {

@@ -27,6 +27,7 @@ public class HttpRequest {
 
 		//--cache--//
 	private String ifModifiedSince = null;
+	private String ifNoneMatch = null;
 
 	//BODY--------------
 	private Boolean isBody = false;
@@ -159,6 +160,10 @@ public class HttpRequest {
 			ch = head.split("If-Modified-Since: ");
 			ifModifiedSince = (ch[1].split("\\r?\\n"))[0];
 		}
+		if(head.indexOf("If-None-Match: ") != -1) {
+			ch = head.split("If-None-Match: ");
+			ifNoneMatch = (ch[1].split("\\r?\\n"))[0];
+		}
 	}
 
 	public String getHead() {
@@ -220,6 +225,9 @@ public class HttpRequest {
 
 	public String getModifiedSince() {
 		return ifModifiedSince;
+	}
+	public String getNoneMatch() {
+		return ifNoneMatch;
 	}
 
 }

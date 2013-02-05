@@ -57,9 +57,21 @@ public class HttpResponse {
 				holeHead = holeHead + "Pragma: no-cache\n";
 				holeHead = holeHead + "Cache-Control: no-cache\n";
 			}
-			else if(cache.getIsLastModified()){ 
-				String lMtime = formatter.format(cache.getLastModified());
-				holeHead = holeHead + "Last-Modified: " + lMtime + "\n";
+			else {
+				if(cache.getExpires() != null) {
+					String sExpires = formatter.format(cache.getExpires());
+					holeHead = holeHead + "Expires: " + sExpires + " GMT\n";
+				}
+				//else if(cache.getCacheControl() != -1) {
+					holeHead = holeHead + "Cache-Control: max-age=60" + "\n";
+				//}
+				if(cache.getIsLastModified()){ 
+					String lMtime = formatter.format(cache.getLastModified());
+					holeHead = holeHead + "Last-Modified: " + lMtime + "\n";
+				}
+				else if(cache.getIsEtag()) {
+					holeHead = holeHead + "ETag: " + cache.getETag() + "\n";
+				}
 			}
 			if(isBody) {
 				holeHead = holeHead + contentType + "\n";	
@@ -108,22 +120,18 @@ public class HttpResponse {
 		cache.setCache(req);
 	}
 	public void setCache(HttpRequest req, int type) {
-		cache.setCache(req, type);
+		cache.setConditionalGET(req, type);
+	}
+	public CacheOption getCache() {
+		return cache;
 	}
 	public void sendFile(File file) throws Exception{
-		if(cache.getIsCache()) {
-			cache.setLastModified(file);
-			if(cache.getModifiedSince() != null) {
-				SimpleDateFormat formatter = new SimpleDateFormat ("E, dd MMM yy HH:mm:ss", Locale.ENGLISH);
-				formatter.setTimeZone(TimeZone.getTimeZone("GMT"));
-				Date ifModifiedDate = formatter.parse(cache.getModifiedSince());
-				if(cache.getLastModified().compareTo(ifModifiedDate) <= 0) {
-					this.setStatus(StatusCode.HTTP_NOT_MODIFIED);
-					this.sendResponseHead();
-					return ;
-				}
-			}
+		if(cache.checkCache(file)) {
+			this.setStatus(StatusCode.HTTP_NOT_MODIFIED);	
+			this.sendResponseHead();
+			return ;
 		}
+		
 		this.setStatus(StatusCode.HTTP_OK);
 		this.sendResponseHead();
 

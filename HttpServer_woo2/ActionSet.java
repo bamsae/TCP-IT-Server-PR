@@ -19,7 +19,7 @@ class ActionSet {
 		actionHash = new HashMap<String, HttpAction>();
 	}
 	public void addAction(String path, HttpAction action) {
-		actionHash.put("/", action);
+		actionHash.put(path, action);
 	}
 
 	public boolean isAction(String path) {

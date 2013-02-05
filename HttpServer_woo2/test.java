@@ -7,9 +7,13 @@ class test extends HttpAction {
 
 	public void action(HttpRequest req, HttpResponse res) {
 		try {	
+			Calendar toto = Calendar.getInstance();
+			toto.add(toto.MINUTE, 1);
+
 			res.setContentType("text/html");
 			res.setCharset("UTF-8");
-			res.setCache(req, CacheOption.CACHE_MODIFIED);
+			res.getCache().setExpires(toto.getTime());
+			res.getCache().setConditionalGET(req, CacheOption.CACHE_ETAG);
 
 			File file = new File("./html/test.html");
 			res.sendFile(file);
