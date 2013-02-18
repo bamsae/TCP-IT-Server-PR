@@ -47,7 +47,8 @@ public class HttpServer {
 
 		public void run() {
 			try {
-				System.out.println("REQURI : " + request.getReqPath());
+				System.out.println("ReqPath : " + request.getReqPath());
+				System.out.println("ReqQuery : " + request.getReqQuery());
 				if(ActionSet.getActionSet().isAction(request.getReqPath())) {
 					System.out.println("setting cache");
 					ActionSet.getActionSet().doAction(request.getReqPath(),request,response);

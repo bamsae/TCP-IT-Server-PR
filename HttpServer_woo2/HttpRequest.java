@@ -66,6 +66,7 @@ public class HttpRequest {
 
 			if(holeHead.indexOf("Content") != -1) {
 				isBody = true;
+				System.out.println(holeHead);
 				System.out.println("isbody");
 			}
 
